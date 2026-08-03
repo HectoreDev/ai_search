@@ -1,0 +1,7 @@
+name = "ai-search-api"
+main = "src/index.ts"
+compatibility_date = "2026-08-03"
+
+[observability]
+enabled = true
+
