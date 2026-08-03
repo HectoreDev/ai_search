@@ -212,7 +212,7 @@ export default function App() {
               className="search-example"
               onClick={() =>
                 setChat(
-                  "I want plan 2015 with 3 bedrooms, 2 bathrooms, 2500 sqft and 2 stories in Nevada and Washington",
+                  "I want plan 1765 with 3 bedrooms, 2 bathrooms, 2500 sqft and 2 stories in Nevada and Washington",
                 )
               }
             >

@@ -82,8 +82,8 @@ pnpm deploy:api
 From the repository root, use the following Cloudflare build settings:
 
 ```text
-Build command:  pnpm --filter api build
-Deploy command: pnpm --filter api deploy
+Build command:  pnpm --filter api run build
+Deploy command: pnpm --filter api run deploy
 ```
 
 Add `GEMINI_API_KEY` as a Cloudflare secret. The D1 binding is defined in
