@@ -216,7 +216,7 @@ export default function App() {
                 )
               }
             >
-              <span>Try:</span> I want plan 2015 with 3 bedrooms, 2 bathrooms,
+              <span>Try:</span> I want plan 1765 with 3 bedrooms, 2 bathrooms,
               2500 sqft and 2 stories in Nevada and Washington
             </button>
             {(isChatLoading || assistantText || notice || chatError) && (
