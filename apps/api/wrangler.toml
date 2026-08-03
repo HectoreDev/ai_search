@@ -2,6 +2,18 @@ name = "ai-search-api"
 main = "src/index.ts"
 compatibility_date = "2026-08-03"
 
+[vars]
+GEMINI_MODEL = "gemini-3.1-flash-lite"
+
+[[d1_databases]]
+binding = "kb_home_ia"
+database_name = "kb_home_ia"
+database_id = "e6850df0-02cc-47ce-9be1-d98ff39c6c50"
+remote = true
+
+# Enable Workers AI after creating the Cloudflare project:
+# [ai]
+# binding = "AI"
+
 [observability]
 enabled = true
-

@@ -13,5 +13,11 @@
     "@cloudflare/workers-types": "latest",
     "typescript": "latest",
     "wrangler": "latest"
+  },
+  "dependencies": {
+    "@tanstack/ai": "latest",
+    "@tanstack/ai-gemini": "latest",
+    "hono": "latest",
+    "zod": "latest"
   }
 }
