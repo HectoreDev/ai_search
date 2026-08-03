@@ -38,6 +38,7 @@ type Plan = {
   states: string[];
   statuses: string[];
   communities: string[];
+  match_score: number;
 };
 
 type SearchResponse = {
@@ -172,6 +173,10 @@ export default function App() {
           (!Array.isArray(value) || value.length),
       ).length,
     [filters],
+  );
+  const highestMatchScore = useMemo(
+    () => Math.max(0, ...results.items.map((plan) => Number(plan.match_score) || 0)),
+    [results.items],
   );
   const assistantText = useMemo(() => {
     const assistant = [...messages]
@@ -309,7 +314,11 @@ export default function App() {
               ) : results.items.length ? (
                 <div className="grid">
                   {results.items.map((plan) => (
-                    <PlanCard key={plan.uid} plan={plan} />
+                    <PlanCard
+                      key={plan.uid}
+                      plan={plan}
+                      highlighted={highestMatchScore > 0 && Number(plan.match_score) === highestMatchScore}
+                    />
                   ))}
                 </div>
               ) : (
@@ -430,9 +439,10 @@ function StateMultiSelect({ value, onChange }: { value: string[]; onChange: (sta
   );
 }
 
-function PlanCard({ plan }: { plan: Plan }) {
+function PlanCard({ plan, highlighted }: { plan: Plan; highlighted: boolean }) {
   return (
-    <article className="plan-card">
+    <article className={`plan-card ${highlighted ? "best-match" : ""}`}>
+      {highlighted && <span className="best-match-label">Best match</span>}
       <div className="plan-card-head">
         <div>
           <h3>{plan.name}</h3>
