@@ -2,7 +2,6 @@ import type { PlanFilters, PlanRow } from "../types";
 
 const WEIGHTS = {
   name: 30,
-  location: 10,
   beds: 8,
   baths: 5,
   sqft: 7,
@@ -13,6 +12,8 @@ const WEIGHTS = {
 export async function searchPlans(db: D1Database, filters: PlanFilters, page = 1, pageSize = 12) {
   const scoreParts: string[] = ["0"];
   const values: unknown[] = [];
+  const filtersSql: string[] = [];
+  const filterValues: unknown[] = [];
 
   const rawName = (filters.name || filters.query)?.trim();
   const requestedName = rawName && /^\d+$/.test(rawName) ? `Plan ${rawName}` : rawName;
@@ -33,14 +34,14 @@ export async function searchPlans(db: D1Database, filters: PlanFilters, page = 1
   }
 
   if (filters.states?.length) {
-    scoreParts.push(`CASE WHEN EXISTS (
+    filtersSql.push(`EXISTS (
       SELECT 1 FROM community_plan cps
       JOIN communities cms ON cms.community_uid = cps.community_uid
       JOIN cities cis ON cis.id = cms.city_id
       JOIN states sts ON sts.id = cis.state_id
       WHERE cps.plan_uid = p.uid AND sts.abbreviation IN (${filters.states.map(() => "?").join(",")})
-    ) THEN ${WEIGHTS.location * 0.45} ELSE ${-WEIGHTS.location * 0.5} END`);
-    values.push(...filters.states.map((state) => state.toUpperCase()));
+    )`);
+    filterValues.push(...filters.states.map((state) => state.toUpperCase()));
   }
 
   addHardRangeScore(scoreParts, values, "p.bedrooms_min", "p.bedrooms_max", filters.bedsMin ?? filters.bedsMax, WEIGHTS.beds);
@@ -50,23 +51,25 @@ export async function searchPlans(db: D1Database, filters: PlanFilters, page = 1
   addHardRangeScore(scoreParts, values, "p.level_min", "p.level_max", filters.storiesMin ?? filters.storiesMax, WEIGHTS.stories);
 
   const scoreSql = scoreParts.map((part) => `(${part})`).join(" + ");
+  const whereSql = filtersSql.length ? `WHERE ${filtersSql.join(" AND ")}` : "";
   const joins = `LEFT JOIN community_plan cp ON cp.plan_uid = p.uid
     LEFT JOIN communities c ON c.community_uid = cp.community_uid
     LEFT JOIN cities ci ON ci.id = c.city_id
     LEFT JOIN states s ON s.id = ci.state_id
     LEFT JOIN community_statuses cs ON cs.id = c.status_id`;
-  const count = await db.prepare("SELECT COUNT(*) total FROM plans").first<{ total: number }>();
+  const count = await db.prepare(`SELECT COUNT(*) total FROM plans p ${whereSql}`)
+    .bind(...filterValues).first<{ total: number }>();
   const offset = (page - 1) * pageSize;
   const result = await db.prepare(`SELECT p.*,
       COALESCE(GROUP_CONCAT(DISTINCT s.abbreviation), '') states,
       COALESCE(GROUP_CONCAT(DISTINCT cs.name), '') statuses,
       COALESCE(GROUP_CONCAT(DISTINCT c.community_name), '') communities,
       (${scoreSql}) match_score
-    FROM plans p ${joins}
+    FROM plans p ${joins} ${whereSql}
     GROUP BY p.uid
     ORDER BY match_score DESC, p.name COLLATE NOCASE ASC
     LIMIT ? OFFSET ?`)
-    .bind(...values, pageSize, offset).all<PlanRow>();
+    .bind(...values, ...filterValues, pageSize, offset).all<PlanRow>();
 
   return {
     items: result.results.map((row) => ({
