@@ -1,0 +1,5 @@
+.field { display: block; margin: 12px 0 0; padding: 0; border: 0; color: #47534c; font-size: 12px; font-weight: 700; }
+.field legend { margin-bottom: 8px; color: #666; font-size: 11px; }
+.range { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.range input { width: 100%; min-width: 0; min-height: 41px; padding: 11px 12px; border: 1px solid #bdbdbd; border-radius: 3px; color: #243129; background: #fff; outline: none; font-size: 14px; }
+.range input:focus { border-color: #ffb900; box-shadow: 0 0 0 2px #ffb90022; }

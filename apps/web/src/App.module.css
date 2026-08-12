@@ -1,0 +1,17 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap");
+
+:global(*) { box-sizing: border-box; }
+:global(html) { font-family: "DM Sans", sans-serif; color: #252525; background: #f4f4f4; }
+:global(body) { min-width: 320px; min-height: 100vh; margin: 0; }
+:global(button), :global(input), :global(textarea), :global(select) { font: inherit; }
+:global(button) { cursor: pointer; }
+
+.shell { min-height: 100vh; }
+.header { height: 78px; padding: 0 24px; display: flex; align-items: center; border-top: 4px solid #efefef; border-bottom: 1px solid #ddd; background: #fff; position: sticky; top: 0; z-index: 30; }
+.brand img { display: block; width: 52px; height: 52px; }
+.workspace { max-width: 1600px; margin: 0 auto; padding: 32px 30px 70px; display: grid; grid-template-columns: minmax(0, 1fr) 245px; gap: 16px; align-items: start; }
+.results { min-width: 0; grid-column: 1; grid-row: 1; }
+.heading { margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
+.heading span { color: #748078; font-size: 13px; }
+.heading h2 { margin: 3px 0 0; font: 700 22px Manrope, sans-serif; }
+@media (max-width: 800px) { .workspace { padding: 24px 16px 60px; grid-template-columns: 1fr; }.results { grid-column: 1; grid-row: 2; } }

@@ -44,6 +44,16 @@ export async function searchPlans(db: D1Database, filters: PlanFilters, page = 1
     filterValues.push(...filters.states.map((state) => state.toUpperCase()));
   }
 
+  if (filters.statuses?.length) {
+    filtersSql.push(`EXISTS (
+      SELECT 1 FROM community_plan cpf
+      JOIN communities cmf ON cmf.community_uid = cpf.community_uid
+      JOIN community_statuses csf ON csf.id = cmf.status_id
+      WHERE cpf.plan_uid = p.uid AND LOWER(csf.name) IN (${filters.statuses.map(() => "?").join(",")})
+    )`);
+    filterValues.push(...filters.statuses);
+  }
+
   addHardRangeScore(scoreParts, values, "p.bedrooms_min", "p.bedrooms_max", filters.bedsMin ?? filters.bedsMax, WEIGHTS.beds);
   addMediumRangeScore(scoreParts, values, "p.bathrooms_min", "p.bathroom_max", filters.bathsMin ?? filters.bathsMax, WEIGHTS.baths, 3);
   addMediumRangeScore(scoreParts, values, "p.sqft_min", "p.sqft_max", filters.sqftMin ?? filters.sqftMax, WEIGHTS.sqft, 300);

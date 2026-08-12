@@ -1,0 +1,4 @@
+.grid { display: grid; grid-template-columns: repeat(3, minmax(230px, 1fr)); gap: 30px; align-items: start; }
+.empty { min-height: 320px; display: grid; place-content: center; justify-items: center; gap: 8px; color: #808a83; border: 1px dashed #ccd3cc; border-radius: 15px; background: #fafbf8; }
+@media (max-width: 1150px) { .grid { grid-template-columns: repeat(2, minmax(230px, 1fr)); } }
+@media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }

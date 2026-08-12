@@ -1,0 +1,15 @@
+.field { position: relative; margin: 14px 0 0; padding: 0; border: 0; }
+.field legend { margin: 0 0 -7px 10px; padding: 0 4px; position: relative; z-index: 3; color: #777; background: #f4f4f4; font-size: 11px; }
+.root { position: relative; }
+.control { min-height: 48px; padding: 8px 58px 8px 8px; display: flex; align-items: center; border: 1px solid #bdbdbd; border-radius: 3px; background: #fff; cursor: pointer; }
+.open .control { padding: 7px 57px 7px 7px; border: 2px solid #ffb900; }
+.chips { min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+.placeholder { padding-left: 5px; color: #777; font-size: 14px; }
+.chip { max-width: 145px; padding: 4px 7px; overflow: hidden; border: 0; border-radius: 99px; color: #333; background: #e1e1e1; font-size: 12px; white-space: nowrap; text-overflow: ellipsis; }
+.chip span { margin-left: 5px; display: inline-grid; width: 15px; height: 15px; place-items: center; color: #fff; background: #b7b7b7; border-radius: 50%; }
+.clear { position: absolute; right: 30px; top: 50%; width: 24px; height: 28px; padding: 0; transform: translateY(-50%); border: 0; color: #777; background: transparent; font-size: 24px; }
+.chevron { position: absolute; right: 12px; color: #777; font-size: 12px; }
+.menu { position: absolute; z-index: 20; top: calc(100% + 2px); left: 0; right: 0; overflow: hidden; border: 1px solid #c5c5c5; background: #fff; box-shadow: 0 3px 5px #0002; }
+.menu button { width: 100%; padding: 9px 15px; display: block; border: 0; color: #333; background: #fff; text-align: left; }
+.menu button:hover, .menu .selected { background: #f1f1f1; }
+.selected::after { content: "✓"; float: right; color: #228052; font-weight: 800; }

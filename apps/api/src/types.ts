@@ -7,6 +7,10 @@ export type Bindings = {
 
 export const PRODUCT_TYPES = ["SFD Detached", "Front Load", "Alley Load", "TH"] as const;
 export type ProductType = (typeof PRODUCT_TYPES)[number];
+export const PLAN_STATUSES = ["active", "archived"] as const;
+export type PlanStatus = (typeof PLAN_STATUSES)[number];
+export const VIEW_MODES = ["elevations", "floorPlans"] as const;
+export type ViewMode = (typeof VIEW_MODES)[number];
 
 export type PlanFilters = {
   query?: string;
@@ -27,6 +31,8 @@ export type PlanFilters = {
   productDepthMax?: number;
   productTypes?: ProductType[];
   division?: string;
+  statuses?: PlanStatus[];
+  viewMode?: ViewMode;
   states?: string[];
 };
 

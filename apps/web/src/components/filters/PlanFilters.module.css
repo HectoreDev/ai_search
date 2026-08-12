@@ -1,0 +1,10 @@
+.filters { grid-column: 2; grid-row: 1; align-self: start; position: sticky; top: 96px; }
+.heading { margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+.heading h2 { margin: 0; font: 700 17px Manrope, sans-serif; }
+.count { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: #267056; font-size: 12px; }
+.label { display: block; margin-top: 12px; color: #666; font-size: 11px; font-weight: 700; }
+.label input { width: 100%; min-height: 41px; margin-top: 8px; padding: 11px 12px; border: 1px solid #bdbdbd; border-radius: 3px; color: #243129; background: #fff; outline: none; font-size: 14px; }
+.button { width: 100%; padding: 12px; border-radius: 3px; font-weight: 800; }
+.apply { composes: button; margin-top: 22px; border: 1px solid #ffbd19; color: #111; background: #ffbd19; }
+.clear { composes: button; margin-top: 8px; border: 1px solid #ccd2cb; color: #47534c; background: #fff; text-transform: uppercase; font-size: 12px; }
+@media (max-width: 800px) { .filters { grid-column: 1; grid-row: 1; position: static; } }

@@ -1,0 +1,13 @@
+.card { align-self: start; overflow: hidden; position: relative; border: 0; border-radius: 2px 2px 22px 22px; background: #fff; box-shadow: 0 8px 16px #00000013; transition: transform .2s, box-shadow .2s; }
+.card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px #0000001c; }
+.best { border: 2px solid #ffc527; box-shadow: 0 0 0 4px #ffc52733, 0 14px 30px #9a6d002e; transform: translateY(-2px); }
+.badge { position: absolute; z-index: 4; top: 10px; left: 50%; padding: 6px 14px; transform: translateX(-50%); border-radius: 99px; color: #222720; background: #ffc527; box-shadow: 0 3px 8px #0002; font: 800 10px/1 Arial; letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }
+.head { min-height: 100px; padding: 17px 14px 12px; display: flex; justify-content: space-between; gap: 10px; }
+.best .head { padding-top: 38px; }
+.head h3 { margin: 0 0 5px; font: 700 16px Manrope, sans-serif; }.head p { margin: 0 0 4px; color: #656565; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }.head span { color: #777; font-size: 11px; }
+.status { height: fit-content; padding: 5px 8px; color: #fff; background: #40a64f; border-radius: 99px; font: 700 9px Arial; text-transform: uppercase; }
+.image { height: 190px; display: grid; place-items: center; position: relative; background-color: #eee; background-position: center; background-size: cover; background-repeat: no-repeat; }.image > span { color: #bbb; font: 800 60px Manrope; }
+.next { position: absolute; right: 0; top: 50%; width: 34px; height: 42px; transform: translateY(-50%); border: 0; color: #333; background: #fff; font-size: 28px; }
+.body { padding-top: 12px; }.price { margin: 0 8px 8px; color: #777; font-size: 13px; }.price strong { color: #333; font-size: 16px; }
+.specs { margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid #ddd; border-width: 1px 0; }.specs div { min-height: 64px; padding: 10px 3px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border-right: 1px solid #ddd; }.specs div:last-child { border-right: 0; }.specs dd { margin: 0; order: 1; font-size: 13px; font-weight: 800; }.specs dt { order: 2; color: #879089; font-size: 9px; }
+.actions { display: grid; grid-template-columns: 1fr 1.4fr; overflow: hidden; border-radius: 0 0 22px 22px; background: #ecebea; }.actions button { min-height: 48px; border: 0; color: #555; background: transparent; font-size: 11px; }.actions button:hover { color: #111; background: #ffbd19; }
