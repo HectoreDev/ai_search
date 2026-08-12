@@ -11,9 +11,8 @@ export default function App() {
   const catalog = usePlanSearch();
   const ai = useAiPlanSearch({
     onStart: () => catalog.setNotice(""),
-    onResults: (filters, results, payload) => {
+    onParsed: (filters, payload) => {
       catalog.setFilters(filters);
-      catalog.setResults(results);
       catalog.setSearchJson(payload);
     },
   });

@@ -1,23 +1,23 @@
 import { useMemo, useState } from "react";
 import { fetchServerSentEvents, useChat } from "@tanstack/ai-react";
 import { apiUrl } from "../lib/api";
-import type { Filters, SearchResponse } from "../types/plan";
+import type { Filters } from "../types/plan";
 
 type Options = {
-  onResults: (filters: Filters, results: SearchResponse, payload: unknown) => void;
+  onParsed: (filters: Filters, payload: unknown) => void;
   onStart: () => void;
 };
 
-export function useAiPlanSearch({ onResults, onStart }: Options) {
+export function useAiPlanSearch({ onParsed, onStart }: Options) {
   const [prompt, setPrompt] = useState("");
   const { messages, sendMessage, isLoading, error } = useChat({
     connection: fetchServerSentEvents(apiUrl("/api/chat")),
     onFinish: (message) => {
       for (const part of message.parts) {
-        if (part.type !== "tool-call" || part.name !== "search_floor_plans" || !part.output) continue;
-        const output = part.output as { filters: Filters; results: SearchResponse };
-        onResults(output.filters, output.results, {
-          source: "search_floor_plans", receivedAt: new Date().toISOString(), ...output,
+        if (part.type !== "tool-call" || part.name !== "parse_floor_plan_filters" || !part.output) continue;
+        const output = part.output as { filters: Filters };
+        onParsed(output.filters, {
+          source: "parse_floor_plan_filters", receivedAt: new Date().toISOString(), ...output,
         });
       }
     },
