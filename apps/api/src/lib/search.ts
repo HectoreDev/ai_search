@@ -52,36 +52,44 @@ export async function searchPlans(db: D1Database, filters: PlanFilters, page = 1
 
   const scoreSql = scoreParts.map((part) => `(${part})`).join(" + ");
   const whereSql = filtersSql.length ? `WHERE ${filtersSql.join(" AND ")}` : "";
-  const joins = `LEFT JOIN community_plan cp ON cp.plan_uid = p.uid
+  const offset = (page - 1) * pageSize;
+  const result = await db.prepare(`WITH ranked AS (
+      SELECT p.*, (${scoreSql}) match_score, COUNT(*) OVER () total_count
+      FROM plans p
+      ${whereSql}
+    ), selected AS (
+      SELECT * FROM ranked
+      ORDER BY match_score DESC, name COLLATE NOCASE ASC
+      LIMIT ? OFFSET ?
+    )
+    SELECT selected.*,
+      COALESCE(GROUP_CONCAT(DISTINCT s.abbreviation), '') states,
+      COALESCE(GROUP_CONCAT(DISTINCT cs.name), '') statuses,
+      COALESCE(GROUP_CONCAT(DISTINCT c.community_name), '') communities
+    FROM selected
+    LEFT JOIN community_plan cp ON cp.plan_uid = selected.uid
     LEFT JOIN communities c ON c.community_uid = cp.community_uid
     LEFT JOIN cities ci ON ci.id = c.city_id
     LEFT JOIN states s ON s.id = ci.state_id
-    LEFT JOIN community_statuses cs ON cs.id = c.status_id`;
-  const count = await db.prepare(`SELECT COUNT(*) total FROM plans p ${whereSql}`)
-    .bind(...filterValues).first<{ total: number }>();
-  const offset = (page - 1) * pageSize;
-  const result = await db.prepare(`SELECT p.*,
-      COALESCE(GROUP_CONCAT(DISTINCT s.abbreviation), '') states,
-      COALESCE(GROUP_CONCAT(DISTINCT cs.name), '') statuses,
-      COALESCE(GROUP_CONCAT(DISTINCT c.community_name), '') communities,
-      (${scoreSql}) match_score
-    FROM plans p ${joins} ${whereSql}
-    GROUP BY p.uid
-    ORDER BY match_score DESC, p.name COLLATE NOCASE ASC
-    LIMIT ? OFFSET ?`)
+    LEFT JOIN community_statuses cs ON cs.id = c.status_id
+    GROUP BY selected.uid
+    ORDER BY selected.match_score DESC, selected.name COLLATE NOCASE ASC`)
     .bind(...values, ...filterValues, pageSize, offset).all<PlanRow>();
 
+  const rows = result.results as Array<PlanRow & { total_count: number }>;
+  const total = rows[0]?.total_count ?? 0;
+
   return {
-    items: result.results.map((row) => ({
+    items: rows.map(({ total_count: _totalCount, ...row }) => ({
       ...row,
       states: row.states ? row.states.split(",") : [],
       statuses: row.statuses ? row.statuses.split(",") : [],
       communities: row.communities ? row.communities.split(",") : [],
     })),
-    total: count?.total ?? 0,
+    total,
     page,
     pageSize,
-    totalPages: Math.max(1, Math.ceil((count?.total ?? 0) / pageSize)),
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
   };
 }
 

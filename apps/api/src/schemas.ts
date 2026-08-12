@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PRODUCT_TYPES } from "./types";
 
 const optionalNumber = z.coerce.number().finite().nonnegative().optional();
 
@@ -15,6 +16,12 @@ export const filtersSchema = z.object({
   bathsMax: optionalNumber,
   garagesMin: optionalNumber,
   garagesMax: optionalNumber,
+  productWidthMin: optionalNumber,
+  productWidthMax: optionalNumber,
+  productDepthMin: optionalNumber,
+  productDepthMax: optionalNumber,
+  productTypes: z.array(z.enum(PRODUCT_TYPES)).max(PRODUCT_TYPES.length).optional(),
+  division: z.string().trim().max(120).optional(),
   states: z.array(z.string().trim().min(2).max(32)).max(20).optional(),
 });
 

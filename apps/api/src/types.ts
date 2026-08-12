@@ -5,6 +5,9 @@ export type Bindings = {
   GEMINI_MODEL?: string;
 };
 
+export const PRODUCT_TYPES = ["SFD Detached", "Front Load", "Alley Load", "TH"] as const;
+export type ProductType = (typeof PRODUCT_TYPES)[number];
+
 export type PlanFilters = {
   query?: string;
   name?: string;
@@ -18,6 +21,12 @@ export type PlanFilters = {
   bathsMax?: number;
   garagesMin?: number;
   garagesMax?: number;
+  productWidthMin?: number;
+  productWidthMax?: number;
+  productDepthMin?: number;
+  productDepthMax?: number;
+  productTypes?: ProductType[];
+  division?: string;
   states?: string[];
 };
 
