@@ -19,7 +19,7 @@ const aiFiltersSchema = z.object({
   productWidthMin: z.number().nonnegative().optional(), productWidthMax: z.number().nonnegative().optional(),
   productDepthMin: z.number().nonnegative().optional(), productDepthMax: z.number().nonnegative().optional(),
   productTypes: z.array(z.enum(PRODUCT_TYPES)).max(PRODUCT_TYPES.length).optional(),
-  division: z.string().trim().max(120).optional(),
+  divisions: z.array(z.string().trim().min(1).max(120)).max(20).optional(),
   statuses: z.array(z.enum(PLAN_STATUSES)).max(PLAN_STATUSES.length).optional(),
   viewMode: z.enum(VIEW_MODES).optional(),
   states: z.array(z.string().length(2)).optional(),
@@ -30,7 +30,7 @@ chatRoutes.post("/", async (c) => {
   const params = await chatParamsFromRequestBody(await c.req.json());
   const parseTool = toolDefinition({
     name: "parse_floor_plan_filters",
-    description: "Parse floor-plan preferences without searching the database. Extract plan name, stories, square feet, bedrooms, bathrooms, garages, product width, product depth, product types, division, community statuses, states, and viewMode. Use statuses for active or archived status. viewMode must be elevations when the user wants elevation images, or floorPlans when the user says viewer plan, floor plan view, or wants floor-plan drawings. Supported product types are SFD Detached, Front Load, Alley Load, and TH. Call this exactly once after extracting all preferences. Preserve explicit numeric ranges in their Min and Max fields. Exact numeric values must use the same min and max. Plan names must use the full catalog format, for example 'Plan 1477', never only '1477'. US states must use two-letter abbreviations. Do not infer filters the user did not provide.",
+    description: "Parse floor-plan preferences without searching the database. Extract plan name, stories, square feet, bedrooms, bathrooms, garages, product width, product depth, product types, divisions, community statuses, states, and viewMode. Return every requested division name in divisions. Use statuses for active or archived status. viewMode must be elevations when the user wants elevation images, or floorPlans when the user says viewer plan, floor plan view, or wants floor-plan drawings. Supported product types are SFD Detached, Front Load, Alley Load, and TH. Call this exactly once after extracting all preferences. Preserve explicit numeric ranges in their Min and Max fields. Exact numeric values must use the same min and max. Plan names must use the full catalog format, for example 'Plan 1477', never only '1477'. US states must use two-letter abbreviations. Do not infer filters the user did not provide.",
     inputSchema: aiFiltersSchema,
   }).server(async (filters) => ({ filters: normalizeParsedFilters(filters) }));
   const stream = chat({
@@ -43,6 +43,7 @@ chatRoutes.post("/", async (c) => {
       "Only parse preferences. Never claim that a database search ran, never claim matches were found, and never invent results.",
       "Normalize product type to exactly one or more of: SFD Detached, Front Load, Alley Load, TH.",
       "Product width and product depth are measured in feet. Preserve explicit ranges and do not guess missing dimensions.",
+      "Return every requested division name as a separate string in divisions. Never return a singular division field.",
       "Extract requested community status into statuses. The only valid values are lowercase active and archived.",
       "Extract display preference into viewMode: elevations for elevation images, floorPlans for viewer plan or floor-plan drawings.",
       "Understand search requests written in Spanish or English, but never write the assistant response in Spanish. Correct obvious state misspellings such as whasshington to Washington (WA).",

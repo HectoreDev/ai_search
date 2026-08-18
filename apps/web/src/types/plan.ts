@@ -17,6 +17,7 @@ export type Filters = {
   productDepthMax?: number;
   productTypes?: Array<"SFD Detached" | "Front Load" | "Alley Load" | "TH">;
   division?: string;
+  divisions?: string[];
   states?: string[];
 };
 

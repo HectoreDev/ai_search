@@ -31,6 +31,7 @@ export type PlanFilters = {
   productDepthMax?: number;
   productTypes?: ProductType[];
   division?: string;
+  divisions?: string[];
   statuses?: PlanStatus[];
   viewMode?: ViewMode;
   states?: string[];

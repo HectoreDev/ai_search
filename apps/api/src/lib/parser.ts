@@ -57,14 +57,37 @@ function normalizeProductType(value: string): ProductType | undefined {
   return PRODUCT_TYPES.find((type) => type.toLowerCase() === normalized);
 }
 
+function titleCase(value: string) {
+  return value.replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function parseDivisions(text: string): string[] {
+  const list = text.match(
+    /\b(?:in|within|for|en)\s+(?:the|las?|los)?\s*([a-z0-9][a-z0-9 &'/-]*?)\s+divisions?\b/i,
+  )?.[1];
+  const singular = text.match(
+    /\bdivision\s*(?:is|of|es|de|:|=)?\s*([a-z0-9][a-z0-9 &'/-]{1,60}?)(?=\s+(?:with|in|and|that|having|con|en|y|que)\b|[,.;]|$)/i,
+  )?.[1];
+
+  return [...new Set((list ? list.split(/\s*(?:,|\band\b|\bor\b|\by\b|\bo\b)\s*/i) : singular ? [singular] : [])
+    .map((division) => division.trim().replace(/^(?:the|la|el)\s+/i, ""))
+    .filter(Boolean)
+    .map(titleCase))];
+}
+
 export function normalizeParsedFilters(filters: PlanFilters): PlanFilters {
   const productTypes = [...new Set((filters.productTypes ?? []).map(normalizeProductType).filter((type): type is ProductType => Boolean(type)))];
   const states = [...new Set((filters.states ?? []).map((state) => state.trim().toUpperCase()).filter(Boolean))];
   const statuses = [...new Set((filters.statuses ?? []).map((status) => status.trim().toLowerCase()).filter((status): status is PlanStatus => PLAN_STATUSES.includes(status as PlanStatus)))];
+  const divisions = [...new Set([
+    ...(filters.divisions ?? []),
+    ...(filters.division ? [filters.division] : []),
+  ].map((division) => division.trim()).filter(Boolean))];
   return {
     ...filters,
     name: filters.name && /^\d+$/.test(filters.name.trim()) ? `Plan ${filters.name.trim()}` : filters.name,
-    division: filters.division?.trim() || undefined,
+    division: undefined,
+    divisions,
     productTypes,
     statuses,
     states,
@@ -80,7 +103,7 @@ export function parseLocally(message: string): PlanFilters {
   const [productWidthMin, productWidthMax] = dimensionRange(normalized, "width");
   const [productDepthMin, productDepthMax] = dimensionRange(normalized, "depth");
   const productTypes = parseProductTypes(normalized);
-  const division = normalized.match(/\bdivision\s*(?:is|of|es|de|:|=)?\s*([a-z0-9][a-z0-9 &'/-]{1,60}?)(?=\s+(?:with|in|and|that|having|con|en|y|que)\b|[,.;]|$)/i)?.[1]?.trim();
+  const divisions = parseDivisions(normalized);
   const [sqftMin, sqftMax] = rangeBefore(normalized, ["square\\s+feet", "sq\\.?\\s*ft", "sqft", "pies?\\s+cuadrados?"]);
   const states = Object.entries(STATE_NAMES)
     .filter(([name]) => new RegExp(`\\b${name}\\b`, "i").test(normalized))
@@ -102,7 +125,7 @@ export function parseLocally(message: string): PlanFilters {
     productWidthMin, productWidthMax,
     productDepthMin, productDepthMax,
     productTypes,
-    division,
+    divisions,
     storiesMin, storiesMax,
     sqftMin, sqftMax,
     statuses,
@@ -118,7 +141,7 @@ export async function parseWithAI(ai: Ai | undefined, message: string): Promise<
   try {
     const response = await ai.run("@cf/meta/llama-3.1-8b-instruct-fast", {
       messages: [
-        { role: "system", content: "Extract floor-plan search filters. Return only JSON with optional keys: name, storiesMin, storiesMax, sqftMin, sqftMax, bedsMin, bedsMax, bathsMin, bathsMax, garagesMin, garagesMax, productWidthMin, productWidthMax, productDepthMin, productDepthMax, productTypes, division, statuses, viewMode, states. statuses must contain only lowercase active or archived. viewMode must be elevations or floorPlans; viewer plan means floorPlans. productTypes must contain only: SFD Detached, Front Load, Alley Load, TH. states must contain US two-letter abbreviations. Preserve explicit numeric ranges. Plan names must use the full format Plan 1477. Exact numeric values use the same min and max. Do not infer fields the user did not mention." },
+        { role: "system", content: "Extract floor-plan search filters. Return only JSON with optional keys: name, storiesMin, storiesMax, sqftMin, sqftMax, bedsMin, bedsMax, bathsMin, bathsMax, garagesMin, garagesMax, productWidthMin, productWidthMax, productDepthMin, productDepthMax, productTypes, divisions, statuses, viewMode, states. divisions must contain every requested division name. statuses must contain only lowercase active or archived. viewMode must be elevations or floorPlans; viewer plan means floorPlans. productTypes must contain only: SFD Detached, Front Load, Alley Load, TH. states must contain US two-letter abbreviations. Preserve explicit numeric ranges. Plan names must use the full format Plan 1477. Exact numeric values use the same min and max. Do not infer fields the user did not mention." },
         { role: "user", content: message },
       ],
       response_format: { type: "json_object" },
