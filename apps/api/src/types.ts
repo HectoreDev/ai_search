@@ -5,8 +5,10 @@ export type Bindings = {
   GEMINI_MODEL?: string;
 };
 
-export const PRODUCT_TYPES = ["SFD Detached", "Front Load", "Alley Load", "TH"] as const;
+export const PRODUCT_TYPES = ["Single Family Home", "Townhome", "Multi-Family", "Duet"] as const;
 export type ProductType = (typeof PRODUCT_TYPES)[number];
+export const GARAGE_TYPES = ["Front", "Rear", "Side", "Detached"] as const;
+export type GarageType = (typeof GARAGE_TYPES)[number];
 export const PLAN_STATUSES = ["active", "archived"] as const;
 export type PlanStatus = (typeof PLAN_STATUSES)[number];
 export const VIEW_MODES = ["elevations", "floorPlans"] as const;
@@ -30,6 +32,7 @@ export type PlanFilters = {
   productDepthMin?: number;
   productDepthMax?: number;
   productTypes?: ProductType[];
+  garageTypes?: GarageType[];
   division?: string;
   divisions?: string[];
   statuses?: PlanStatus[];

@@ -12,6 +12,7 @@ plansRoutes.get("/", async (c) => {
     states: raw.states ? raw.states.split(",").filter(Boolean) : undefined,
     statuses: raw.statuses ? raw.statuses.split(",").filter(Boolean) : undefined,
     productTypes: raw.productTypes ? raw.productTypes.split(",").filter(Boolean) : undefined,
+    garageTypes: raw.garageTypes ? raw.garageTypes.split(",").filter(Boolean) : undefined,
   });
   if (!parsed.success) return c.json({ error: "Invalid filters", details: parsed.error.flatten() }, 400);
   return c.json(await searchPlans(c.env.kb_home_ia, parsed.data, Math.max(1, Number(raw.page) || 1), Math.min(50, Math.max(1, Number(raw.pageSize) || 12))));

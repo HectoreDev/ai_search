@@ -1,4 +1,4 @@
-import { PLAN_STATUSES, PRODUCT_TYPES, type PlanFilters, type PlanStatus, type ProductType, type ViewMode } from "../types";
+import { GARAGE_TYPES, PLAN_STATUSES, PRODUCT_TYPES, type GarageType, type PlanFilters, type PlanStatus, type ProductType, type ViewMode } from "../types";
 
 const STATE_NAMES: Record<string, string> = {
   alabama: "AL", alaska: "AK", arizona: "AZ", arkansas: "AR", california: "CA",
@@ -41,20 +41,41 @@ function dimensionRange(text: string, name: "width" | "depth") {
 function parseProductTypes(text: string): ProductType[] {
   const types: ProductType[] = [];
   const add = (type: ProductType) => { if (!types.includes(type)) types.push(type); };
-  if (/\b(?:sfd(?:\s+detach(?:ed)?)?|single[-\s]?family\s+detached|detached\s+home|casa\s+unifamiliar\s+independiente)\b/i.test(text)) add("SFD Detached");
-  if (/\b(?:front[-\s]?load(?:ed)?|carga\s+frontal)\b/i.test(text)) add("Front Load");
-  if (/\b(?:alley[-\s]?load(?:ed)?|carga\s+por\s+callejon)\b/i.test(text)) add("Alley Load");
-  if (/\b(?:th|townhome|townhomes|town\s*house|town\s*houses|casa\s+adosada)\b/i.test(text)) add("TH");
+  if (/\b(?:single[-\s]?family(?:\s+home)?|sfd|casa\s+unifamiliar)\b/i.test(text)) add("Single Family Home");
+  if (/\b(?:townhome|townhomes|town\s*house|town\s*houses|th|casa\s+adosada)\b/i.test(text)) add("Townhome");
+  if (/\b(?:multi[-\s]?family|multifamily|vivienda\s+multifamiliar)\b/i.test(text)) add("Multi-Family");
+  if (/\b(?:duet|duets)\b/i.test(text)) add("Duet");
   return types;
 }
 
 function normalizeProductType(value: string): ProductType | undefined {
   const normalized = value.trim().toLowerCase().replace(/[-_]/g, " ").replace(/\s+/g, " ");
-  if (/^(?:sfd|sfd detach|sfd detached|single family detached|detached)$/.test(normalized)) return "SFD Detached";
-  if (/^front load(?:ed)?$/.test(normalized)) return "Front Load";
-  if (/^alley load(?:ed)?$/.test(normalized)) return "Alley Load";
-  if (/^(?:th|townhome|townhomes|town house|townhouse)$/.test(normalized)) return "TH";
+  if (/^(?:single family|single family home|sfd)$/.test(normalized)) return "Single Family Home";
+  if (/^(?:townhome|townhomes|town house|townhouse|th)$/.test(normalized)) return "Townhome";
+  if (/^(?:multi family|multifamily)$/.test(normalized)) return "Multi-Family";
+  if (/^duets?$/.test(normalized)) return "Duet";
   return PRODUCT_TYPES.find((type) => type.toLowerCase() === normalized);
+}
+
+function parseGarageTypes(text: string): GarageType[] {
+  const types: GarageType[] = [];
+  const add = (type: GarageType) => { if (!types.includes(type)) types.push(type); };
+  const requestedList = text.match(/\bgarage\s+types?\s*(?:is|are|of|:|=)?\s*([^,.;]+?)(?=\s+(?:with|in|for|and\s+show|that)\b|[,.;]|$)/i)?.[1] ?? "";
+  const garageContext = `${text} ${requestedList}`;
+  if (/\b(?:front(?:[-\s]?load(?:ed)?)?\s+garage|garage\s+(?:type\s+)?front|garaje\s+frontal)\b/i.test(text) || /\bfront\b/i.test(requestedList)) add("Front");
+  if (/\b(?:rear(?:[-\s]?load(?:ed)?)?\s+garage|garage\s+(?:type\s+)?rear|garaje\s+trasero)\b/i.test(text) || /\brear\b/i.test(requestedList)) add("Rear");
+  if (/\b(?:side(?:[-\s]?load(?:ed)?)?\s+garage|garage\s+(?:type\s+)?side|garaje\s+lateral)\b/i.test(text) || /\bside\b/i.test(requestedList)) add("Side");
+  if (/\b(?:detached\s+garage|garage\s+(?:type\s+)?detached|garaje\s+separado)\b/i.test(garageContext)) add("Detached");
+  return types;
+}
+
+function normalizeGarageType(value: string): GarageType | undefined {
+  const normalized = value.trim().toLowerCase().replace(/[-_]/g, " ").replace(/\s+/g, " ");
+  if (/^front(?: load(?:ed)?)?$/.test(normalized)) return "Front";
+  if (/^rear(?: load(?:ed)?)?$/.test(normalized)) return "Rear";
+  if (/^side(?: load(?:ed)?)?$/.test(normalized)) return "Side";
+  if (/^detached$/.test(normalized)) return "Detached";
+  return GARAGE_TYPES.find((type) => type.toLowerCase() === normalized);
 }
 
 function titleCase(value: string) {
@@ -77,6 +98,7 @@ function parseDivisions(text: string): string[] {
 
 export function normalizeParsedFilters(filters: PlanFilters): PlanFilters {
   const productTypes = [...new Set((filters.productTypes ?? []).map(normalizeProductType).filter((type): type is ProductType => Boolean(type)))];
+  const garageTypes = [...new Set((filters.garageTypes ?? []).map(normalizeGarageType).filter((type): type is GarageType => Boolean(type)))];
   const states = [...new Set((filters.states ?? []).map((state) => state.trim().toUpperCase()).filter(Boolean))];
   const statuses = [...new Set((filters.statuses ?? []).map((status) => status.trim().toLowerCase()).filter((status): status is PlanStatus => PLAN_STATUSES.includes(status as PlanStatus)))];
   const divisions = [...new Set([
@@ -89,6 +111,7 @@ export function normalizeParsedFilters(filters: PlanFilters): PlanFilters {
     division: undefined,
     divisions,
     productTypes,
+    garageTypes,
     statuses,
     states,
   };
@@ -103,6 +126,7 @@ export function parseLocally(message: string): PlanFilters {
   const [productWidthMin, productWidthMax] = dimensionRange(normalized, "width");
   const [productDepthMin, productDepthMax] = dimensionRange(normalized, "depth");
   const productTypes = parseProductTypes(normalized);
+  const garageTypes = parseGarageTypes(normalized);
   const divisions = parseDivisions(normalized);
   const [sqftMin, sqftMax] = rangeBefore(normalized, ["square\\s+feet", "sq\\.?\\s*ft", "sqft", "pies?\\s+cuadrados?"]);
   const states = Object.entries(STATE_NAMES)
@@ -125,6 +149,7 @@ export function parseLocally(message: string): PlanFilters {
     productWidthMin, productWidthMax,
     productDepthMin, productDepthMax,
     productTypes,
+    garageTypes,
     divisions,
     storiesMin, storiesMax,
     sqftMin, sqftMax,
@@ -141,7 +166,7 @@ export async function parseWithAI(ai: Ai | undefined, message: string): Promise<
   try {
     const response = await ai.run("@cf/meta/llama-3.1-8b-instruct-fast", {
       messages: [
-        { role: "system", content: "Extract floor-plan search filters. Return only JSON with optional keys: name, storiesMin, storiesMax, sqftMin, sqftMax, bedsMin, bedsMax, bathsMin, bathsMax, garagesMin, garagesMax, productWidthMin, productWidthMax, productDepthMin, productDepthMax, productTypes, divisions, statuses, viewMode, states. divisions must contain every requested division name. statuses must contain only lowercase active or archived. viewMode must be elevations or floorPlans; viewer plan means floorPlans. productTypes must contain only: SFD Detached, Front Load, Alley Load, TH. states must contain US two-letter abbreviations. Preserve explicit numeric ranges. Plan names must use the full format Plan 1477. Exact numeric values use the same min and max. Do not infer fields the user did not mention." },
+        { role: "system", content: "Extract floor-plan search filters. Return only JSON with optional keys: name, storiesMin, storiesMax, sqftMin, sqftMax, bedsMin, bedsMax, bathsMin, bathsMax, garagesMin, garagesMax, productWidthMin, productWidthMax, productDepthMin, productDepthMax, productTypes, garageTypes, divisions, statuses, viewMode, states. productTypes must contain only: Single Family Home, Townhome, Multi-Family, Duet. garageTypes must contain only: Front, Rear, Side, Detached. Keep productTypes and garageTypes separate. divisions must contain every requested division name. statuses must contain only lowercase active or archived. viewMode must be elevations or floorPlans; viewer plan means floorPlans. states must contain US two-letter abbreviations. Preserve explicit numeric ranges. Plan names must use the full format Plan 1477. Exact numeric values use the same min and max. Do not infer fields the user did not mention." },
         { role: "user", content: message },
       ],
       response_format: { type: "json_object" },

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PLAN_STATUSES, PRODUCT_TYPES, VIEW_MODES } from "./types";
+import { GARAGE_TYPES, PLAN_STATUSES, PRODUCT_TYPES, VIEW_MODES } from "./types";
 
 const optionalNumber = z.coerce.number().finite().nonnegative().optional();
 
@@ -21,6 +21,7 @@ export const filtersSchema = z.object({
   productDepthMin: optionalNumber,
   productDepthMax: optionalNumber,
   productTypes: z.array(z.enum(PRODUCT_TYPES)).max(PRODUCT_TYPES.length).optional(),
+  garageTypes: z.array(z.enum(GARAGE_TYPES)).max(GARAGE_TYPES.length).optional(),
   division: z.string().trim().max(120).optional(),
   divisions: z.array(z.string().trim().min(1).max(120)).max(20).optional(),
   statuses: z.array(z.enum(PLAN_STATUSES)).max(PLAN_STATUSES.length).optional(),

@@ -5,7 +5,7 @@ import { z } from "zod";
 import { normalizeParsedFilters, parseWithAI } from "../lib/parser";
 import { parseRequestSchema } from "../schemas";
 import type { Bindings } from "../types";
-import { PLAN_STATUSES, PRODUCT_TYPES, VIEW_MODES } from "../types";
+import { GARAGE_TYPES, PLAN_STATUSES, PRODUCT_TYPES, VIEW_MODES } from "../types";
 
 export const chatRoutes = new Hono<{ Bindings: Bindings }>();
 
@@ -19,6 +19,7 @@ const aiFiltersSchema = z.object({
   productWidthMin: z.number().nonnegative().optional(), productWidthMax: z.number().nonnegative().optional(),
   productDepthMin: z.number().nonnegative().optional(), productDepthMax: z.number().nonnegative().optional(),
   productTypes: z.array(z.enum(PRODUCT_TYPES)).max(PRODUCT_TYPES.length).optional(),
+  garageTypes: z.array(z.enum(GARAGE_TYPES)).max(GARAGE_TYPES.length).optional(),
   divisions: z.array(z.string().trim().min(1).max(120)).max(20).optional(),
   statuses: z.array(z.enum(PLAN_STATUSES)).max(PLAN_STATUSES.length).optional(),
   viewMode: z.enum(VIEW_MODES).optional(),
@@ -30,7 +31,7 @@ chatRoutes.post("/", async (c) => {
   const params = await chatParamsFromRequestBody(await c.req.json());
   const parseTool = toolDefinition({
     name: "parse_floor_plan_filters",
-    description: "Parse floor-plan preferences without searching the database. Extract plan name, stories, square feet, bedrooms, bathrooms, garages, product width, product depth, product types, divisions, community statuses, states, and viewMode. Return every requested division name in divisions. Use statuses for active or archived status. viewMode must be elevations when the user wants elevation images, or floorPlans when the user says viewer plan, floor plan view, or wants floor-plan drawings. Supported product types are SFD Detached, Front Load, Alley Load, and TH. Call this exactly once after extracting all preferences. Preserve explicit numeric ranges in their Min and Max fields. Exact numeric values must use the same min and max. Plan names must use the full catalog format, for example 'Plan 1477', never only '1477'. US states must use two-letter abbreviations. Do not infer filters the user did not provide.",
+    description: "Parse floor-plan preferences without searching the database. Extract plan name, stories, square feet, bedrooms, bathrooms, garages, product width, product depth, productTypes, garageTypes, divisions, community statuses, states, and viewMode. Product types must be Single Family Home, Townhome, Multi-Family, or Duet. Garage types must be Front, Rear, Side, or Detached. Return every requested division name in divisions. Use statuses for active or archived status. viewMode must be elevations when the user wants elevation images, or floorPlans when the user says viewer plan, floor plan view, or wants floor-plan drawings. Call this exactly once after extracting all preferences. Preserve explicit numeric ranges in their Min and Max fields. Exact numeric values must use the same min and max. Plan names must use the full catalog format, for example 'Plan 1477', never only '1477'. US states must use two-letter abbreviations. Do not infer filters the user did not provide.",
     inputSchema: aiFiltersSchema,
   }).server(async (filters) => ({ filters: normalizeParsedFilters(filters) }));
   const stream = chat({
@@ -41,7 +42,8 @@ chatRoutes.post("/", async (c) => {
       "You are Planfinder, a concise floor-plan search assistant. Always respond to the user in English only, even when the user writes in Spanish or another language.",
       "Always use parse_floor_plan_filters for a floor-plan request.",
       "Only parse preferences. Never claim that a database search ran, never claim matches were found, and never invent results.",
-      "Normalize product type to exactly one or more of: SFD Detached, Front Load, Alley Load, TH.",
+      "Normalize productTypes to exactly one or more of: Single Family Home, Townhome, Multi-Family, Duet.",
+      "Normalize garageTypes to exactly one or more of: Front, Rear, Side, Detached. Keep garageTypes separate from productTypes.",
       "Product width and product depth are measured in feet. Preserve explicit ranges and do not guess missing dimensions.",
       "Return every requested division name as a separate string in divisions. Never return a singular division field.",
       "Extract requested community status into statuses. The only valid values are lowercase active and archived.",

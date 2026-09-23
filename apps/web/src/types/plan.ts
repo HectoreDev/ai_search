@@ -15,7 +15,8 @@ export type Filters = {
   productWidthMax?: number;
   productDepthMin?: number;
   productDepthMax?: number;
-  productTypes?: Array<"SFD Detached" | "Front Load" | "Alley Load" | "TH">;
+  productTypes?: Array<"Single Family Home" | "Townhome" | "Multi-Family" | "Duet">;
+  garageTypes?: Array<"Front" | "Rear" | "Side" | "Detached">;
   division?: string;
   divisions?: string[];
   states?: string[];
